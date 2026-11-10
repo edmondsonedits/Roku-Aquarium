@@ -1,0 +1,11 @@
+import {createRoot} from 'react-dom/client';
+import {Suspense} from 'react';
+import Home from '../app/page';
+import Host from '../app/host/[code]/page';
+import Draw from '../app/draw/[code]/page';
+import Join from '../app/join/page';
+import '../app/globals.css';
+const match=location.pathname.match(/^\/(host|draw)\/([A-Z2-9]{6})\/?$/i);
+const params=Promise.resolve({code:match?.[2]||''});
+const page=match?(match[1]==='host'?<Host params={params}/>:<Draw params={params}/>):location.pathname==='/join'?<Join/>:<Home/>;
+createRoot(document.getElementById('root')!).render(<Suspense fallback={<main style={{padding:40}}>Opening your aquarium…</main>}>{page}</Suspense>);

@@ -1,0 +1,4 @@
+import {isIP} from 'node:net';
+import {networkInterfaces,hostname} from 'node:os';
+export function allowedHost(raw:string,ownName=hostname(),extra=(process.env.AQUARIUM_ALLOWED_HOSTS||'').split(',')){let host:string;try{host=new URL('http://'+raw).hostname.toLowerCase();}catch{return false;}if(host==='localhost'||host==='[::1]'||host===ownName.toLowerCase()||extra.some(v=>v.trim().toLowerCase()===host))return true;if(isIP(host)!==4)return false;const p=host.split('.').map(Number);return p[0]===127||p[0]===10||(p[0]===192&&p[1]===168)||(p[0]===172&&p[1]>=16&&p[1]<=31);}
+export function lanOrigins(port:number,discover=networkInterfaces){let interfaces:ReturnType<typeof networkInterfaces>;try{interfaces=discover();}catch{return [];}const ips=Object.values(interfaces).flatMap(list=>list||[]).filter(info=>info.family==='IPv4'&&!info.internal&&allowedHost(info.address)).map(info=>`http://${info.address}:${port}`);return[...new Set(ips)];}

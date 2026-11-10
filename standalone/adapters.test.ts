@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {openStorage} from './storage';
+import {allowedHost} from './network';
+test('disk storage survives independent restart and batches roll back',async()=>{const dir=await mkdtemp(join(tmpdir(),'aquarium-'));try{let storage=await openStorage(dir);await storage.DB.prepare('INSERT INTO rooms(code,title,recovery_hash,accepting,updated_at) VALUES (?,?,?,?,?)').bind('ABC234','Persist','hash',1,1).run();await storage.BUCKET.put('fish/ABC234/test.png',new Uint8Array([1,2,3]));await assert.rejects(storage.DB.batch([storage.DB.prepare('UPDATE rooms SET title=? WHERE code=?').bind('Wrong','ABC234'),storage.DB.prepare('INSERT INTO rooms(code) VALUES (?)').bind('ABC234')]));storage.close();storage=await openStorage(dir);assert.equal((await storage.DB.prepare('SELECT title FROM rooms WHERE code=?').bind('ABC234').first() as any).title,'Persist');assert.deepEqual(new Uint8Array(await new Response((await storage.BUCKET.get('fish/ABC234/test.png'))!.body).arrayBuffer()),new Uint8Array([1,2,3]));await assert.rejects(storage.BUCKET.put('../../outside',new Uint8Array()));storage.close();}finally{await rm(dir,{recursive:true,force:true});}});
+test('rejects DNS rebinding hostnames and accepts loopback/LAN',()=>{assert.equal(allowedHost('evil.example:3000','my-computer'),false);for(const host of ['localhost:3000','127.0.0.1:3000','192.168.1.25:3000','10.0.0.8:3000','my-computer:3000'])assert.equal(allowedHost(host,'my-computer'),true);assert.equal(allowedHost('8.8.8.8:3000','my-computer'),false);assert.equal(allowedHost('192.168.1.25.evil.test:3000','my-computer'),false);});
+test('LAN discovery failure keeps local aquarium startup usable',async()=>{const {lanOrigins}=await import('./network');assert.deepEqual(lanOrigins(4317,()=>{throw new Error('network discovery unavailable');}),[]);});

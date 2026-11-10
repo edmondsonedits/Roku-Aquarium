@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { stableAction, nextSelection } from '../app/components/client-state.ts';
+test('reload and retry preserve the action identifier', () => { const values=new Map(); const storage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)}; assert.equal(stableAction(storage,'ABC123',()=> 'first'), 'first'); assert.equal(stableAction(storage,'ABC123',()=> 'second'), 'first'); });
+test('selection cannot exceed active capacity and can toggle off',()=>{assert.deepEqual(nextSelection(['a'],'b',1),['a']);assert.deepEqual(nextSelection(['a'],'a',1),[]);assert.deepEqual(nextSelection(['a'],'b',2),['a','b']);});
+test('UUID fallback works without secure-context randomUUID', async()=>{const {randomUuid}=await import('../app/components/client-state.ts');const value=randomUuid({getRandomValues:array=>{array.fill(12);return array;}});assert.match(value,/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);});
+test('new drawing pages do not reuse a cloned tab action, but reloads retain it',()=>{const values=new Map([['aquarium-action:ABC123','other-tab-action']]);const storage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};assert.equal(stableAction(storage,'ABC123',()=> 'new-tab-action','navigate'),'new-tab-action');assert.equal(stableAction(storage,'ABC123',()=> 'unwanted-new-action','reload'),'new-tab-action');assert.equal(stableAction(storage,'ABC123',()=> 'unwanted-history-action','back_forward'),'new-tab-action');});

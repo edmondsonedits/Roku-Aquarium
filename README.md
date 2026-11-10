@@ -17,6 +17,10 @@ This is a laptop web app, not an installable Roku channel. Connect the laptop to
 
 The ready-to-run build is included in `runtime/` and `dist-local/`. You do **not** need to run `npm install` to use it. Internet is only needed for the initial download and Node installation. Once set up, the aquarium runs on your local network.
 
+## Choose a fish body
+
+The drawing editor includes simple and advanced fish bodies with visual previews. Choose a shape to colour in, or start with a blank canvas and invent your own. Changing shapes after adding artwork asks before replacing it, and Undo brings the previous drawing back.
+
 ## Save your fish for tomorrow
 
 Submitted fish are saved on the laptop, not just in a phone browser. End the shift to clear the swimming display without deleting the library. Reopen it later, select saved fish, and apply the selection to welcome them back.
