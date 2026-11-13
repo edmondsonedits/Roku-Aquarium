@@ -1,6 +1,6 @@
 import type { FishFinalePublicEntry } from "../../../lib/arcade/fish-finale";
 import type { FishPose } from "../../../lib/fish-motion";
-import { buildFishVolume } from "../../../lib/fish-volume";
+import { buildFishSurface } from "../../../lib/fish-surface";
 
 const VERTEX = `
 attribute vec3 a_vertex;
@@ -17,22 +17,21 @@ void main() {
   float tail = pow(1. - along, 1.4);
   vec2 p = (uv - (u_bounds.xy + u_bounds.zw * .5)) * u_size;
   float bend = sin(u_phase + along * 5.2) * tail * u_size.x * u_amplitude;
-  p.y += bend * .65;
-  float z = a_vertex.z * u_size.x + bend;
-  float cy = u_facing * u_yaw;
-  float sy = u_turn * sqrt(max(0., 1. - u_yaw * u_yaw));
-  float depth = -p.x * sy + z * cy;
-  p.x = p.x * cy + z * sy;
+  p.y += bend * .38;
+  // Keep the artist's silhouette. A shallow ribbon bends vertically, never
+  // extrudes into hollow cells or rotates a made-up textured sidewall into view.
+  float cy = u_facing * max(.035, u_yaw);
+  p.x *= cy;
   float c = cos(u_pitch), s = sin(u_pitch);
   p = vec2(p.x * c - p.y * s, p.x * s + p.y * c) + u_center;
-  gl_Position = vec4(p.x / u_view.x * 2. - 1., 1. - p.y / u_view.y * 2., -depth / max(1., u_size.x), 1.);
+  gl_Position = vec4(p.x / u_view.x * 2. - 1., 1. - p.y / u_view.y * 2., 0., 1.);
   v_uv = a_uv;
-  v_shade = .84 + .12 * u_yaw + .08 * (1. - uv.y);
+  v_shade = .98 + .02 * u_yaw;
 }`;
 const FRAGMENT = `precision mediump float; varying vec2 v_uv; varying float v_shade; uniform sampler2D u_image; uniform float u_opacity; void main() { vec4 ink = texture2D(u_image, v_uv); if (ink.a < .02) discard; gl_FragColor = vec4(ink.rgb * v_shade, ink.a) * u_opacity; }`;
 
 type FishMeshAsset = { texture: WebGLTexture; vertices: WebGLBuffer; indices: WebGLBuffer; count: number };
-/** Original PNG on two curved faces. Geometry is created once per decoded art. */
+/** Double-sided continuous artwork ribbon. Depth travel is 2.5D, not an invented 3D animal. */
 export class FishMesh {
   private gl: WebGLRenderingContext;
   private program: WebGLProgram;
@@ -62,11 +61,9 @@ export class FishMesh {
   }
   texture(id: string, image: HTMLImageElement, entry: FishFinalePublicEntry) {
     const gl = this.gl;
-    const raster = document.createElement("canvas"); raster.width = 128; raster.height = 96;
-    const ctx = raster.getContext("2d", { willReadFrequently: true });
-    if (!ctx) throw new Error("Artwork sampling unavailable");
-    ctx.drawImage(image, 0, 0, 128, 96);
-    const geometry = buildFishVolume(ctx.getImageData(0, 0, 128, 96), entry.anchors);
+    // Entry remains part of the upload contract; art shape is never inferred from anchors.
+    void entry;
+    const geometry = buildFishSurface();
     // Animation samples a bounded texture; downloads retain the untouched PNG.
     const textureCanvas = document.createElement("canvas");
     const scale = Math.min(1, 512 / image.naturalWidth, 384 / image.naturalHeight);

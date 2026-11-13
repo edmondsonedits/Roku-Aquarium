@@ -30,3 +30,8 @@ test('coral crossover rise runs after separation',()=>{
  const result=separateFish([pose]).map(p=>riseAcrossCoral(p));
  assert.equal(result[0]!.y,.135);assert.equal(riseAcrossCoral(pose,true),pose);
 });
+
+test('artwork stays broadside for most travel, compressing only briefly for reversals',()=>{
+ const poses=Array.from({length:1200},(_,i)=>samplePanoramaFish(swimPersonality('readable'),i/10));
+ assert.ok(poses.filter(p=>p.yaw<.3).length/poses.length<.06);
+});

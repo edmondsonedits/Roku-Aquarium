@@ -16,7 +16,7 @@ export function samplePanoramaFish(personality: SwimPersonality, seconds: number
  const dx=(after.x-before.x)/(time<.05?.05+time:.1);
  const yaw=Math.abs(dx)/Math.max(.00001,Math.hypot(dx,dz*1.2));
  return {...base,depth,scale:personality.scale*(.62+depth*.8),
-  facing:dx>=0?1:-1,yaw,turn:dz>=0?1:-1,
+  facing:dx>=0?1:-1,yaw:Math.sqrt(yaw),turn:dz>=0?1:-1,
   amplitude:base.amplitude*.65,opacity:1};
 }
 

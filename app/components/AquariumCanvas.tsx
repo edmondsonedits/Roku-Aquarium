@@ -23,7 +23,7 @@ export function drawSprite(ctx: CanvasRenderingContext2D, image: HTMLImageElemen
     // displacement as its neighbour. Screen-space overlap also covers raster
     // antialiasing during yaw, avoiding transparent hairlines through the body.
     const strips = width < 700 ? 14 : 24, sourceWidth = image.naturalWidth, sourceHeight = image.naturalHeight;
-    const wave = (u: number) => { const along = clamp((u - entry.anchors.tail.x) / Math.max(.1, entry.anchors.head.x - entry.anchors.tail.x)); return Math.sin(pose.tailPhase + along * 5.2) * Math.pow(1 - along, 1.4) * size.width * pose.amplitude; };
+    const wave = (u: number) => { const along = clamp((u - entry.anchors.tail.x) / Math.max(.1, entry.anchors.head.x - entry.anchors.tail.x)); return Math.sin(pose.tailPhase + along * 5.2) * Math.pow(1 - along, 1.4) * size.width * pose.amplitude * .38; };
     for (let i = 0; i < strips; i++) {
       const u = i / strips, next = (i + 1) / strips, dy = wave(u), end = wave(next);
       const overlap = sourceWidth / Math.max(1, size.width * Math.max(.035, pose.yaw)) * .85;
