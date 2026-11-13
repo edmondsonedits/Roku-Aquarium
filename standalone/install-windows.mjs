@@ -18,13 +18,14 @@ async function filesAt(root, sub='') {
   }
   return out.sort();
 }
-export async function verifyPackage(root) {
+export async function verifyPackage(root, {allowLegacy=false}={}) {
   const manifest=JSON.parse(await readFile(resolve(root,marker),'utf8'));
   if(manifest.kind!=='work-aquarium-app-v1' || !manifest.files || typeof manifest.files!=='object') throw new Error('Unrecognized app package.');
   const names=Object.keys(manifest.files).sort();
   if(!names.includes('runtime/server.mjs') || !names.includes('dist-local/index.html')) throw new Error('Incomplete app package.');
+  if(!allowLegacy && !names.includes('drizzle/0000_remarkable_korg.sql')) throw new Error('Incomplete app package: database migrations missing. Extract the complete updated download.');
   for(const name of names) {
-    if(!/^(runtime\/server\.mjs|dist-local\/[a-zA-Z0-9_./-]+)$/.test(name) || name.split('/').includes('..')) throw new Error('Unsafe package path.');
+    if(!/^(runtime\/server\.mjs|dist-local\/[a-zA-Z0-9_./-]+|drizzle\/[a-zA-Z0-9_-]+\.sql)$/.test(name) || name.split('/').includes('..')) throw new Error('Unsafe package path.');
     const full=resolve(root,name);
     let prefix=root; for(const part of name.split('/')) { prefix=resolve(prefix,part); if((await lstat(prefix)).isSymbolicLink()) throw new Error('Symbolic link in package.'); }
     if(hash(await readFile(full))!==manifest.files[name]) throw new Error(`App package check failed: ${name}`);
@@ -33,7 +34,7 @@ export async function verifyPackage(root) {
 }
 async function requireManagedOnly(root) {
   if((await lstat(root)).isSymbolicLink()) throw new Error('Managed app folder must not be a symbolic link.');
-  const m=await verifyPackage(root);
+  const m=await verifyPackage(root,{allowLegacy:true});
   const actual=await filesAt(root);
   const expected=new Set([...Object.keys(m.files),marker]);
   for(const name of Object.keys(m.files)){const parts=name.split('/');parts.pop();while(parts.length){expected.add(parts.join('/')+'/');parts.pop();}}
@@ -49,7 +50,7 @@ export async function installPackage(source, destination, hook=async()=>{}) {
   if(await exists(current)) await requireManagedOnly(current);
   if(await exists(previous)) await requireManagedOnly(previous);
   if(await exists(current)) {
-    const installed=await verifyPackage(current);
+    const installed=await verifyPackage(current,{allowLegacy:true});
     if(JSON.stringify(installed)===JSON.stringify(manifest)) return current;
   }
   const stage=resolve(destination,`staging-${process.pid}-${Date.now()}`);

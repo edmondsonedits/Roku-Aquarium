@@ -6,6 +6,7 @@
     "dist-local/index.html": "32b5846bdb4364ecc193f9d423af23ddd28df7b8eb1751b824932f9cdd2b1e97",
     "dist-local/panorama/aquarium.png": "f00a8cbbef55f05a6f11c7694116e5903395b53f0a05f63e6ce50bd699383a2c",
     "dist-local/panorama/scene.json": "870230cc19af63637e84dab85a79102d0b57db1b7a85e0392d42585502ad4a8a",
+    "drizzle/0000_remarkable_korg.sql": "9da7d60621b9e5de196fa9089a545556d2e21d36f27f8fc6ba7ff974573ebb08",
     "runtime/server.mjs": "2d8108a3c9f8dcfd22df556f6d2cbf5bf127c61baf3b301b74602e21aeb83c8a"
   }
 }
