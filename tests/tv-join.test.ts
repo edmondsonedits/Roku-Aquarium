@@ -10,3 +10,8 @@ test('TV join card includes scannable image and room code without recovery key',
 test('TV join card can be hidden for an unobstructed aquarium',()=>{
  assert.equal(renderToStaticMarkup(React.createElement(TvJoinCard,{qr:'data:image/png;base64,test',code:'ABC234',visible:false})), '');
 });
+test('TV join card reserves a larger square image and labels the fallback room code',()=>{
+ const html=renderToStaticMarkup(React.createElement(TvJoinCard,{qr:'data:image/png;base64,test',code:'ABC234',visible:true}));
+ assert.match(html,/width="256" height="256"/);
+ assert.match(html,/<span class="sr-only">Room code <\/span>ABC234/);
+});
