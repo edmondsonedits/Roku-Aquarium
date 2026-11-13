@@ -14,3 +14,11 @@ export function panoramaLayout(imageWidth: number, imageHeight: number, viewport
   return { width, height, x: -(width - viewportWidth) * Math.max(0, Math.min(1, progress)), y: (viewportHeight - height) / 2 };
 }
 export const PANORAMA_OCCLUSION_DEPTH = .58;
+
+/** Budget expensive draws to 60 per second, independent of monitor refresh rate.
+ * Absolute time slots avoid cumulative drift (and a 144 Hz monitor dropping to 48 fps).
+ * Simulation time must still use actual elapsed time between draws.
+ */
+export function panoramaFrameDue(now: number, lastDraw: number | null): boolean {
+  return lastDraw === null || Math.floor(now * .06 + 1e-7) > Math.floor(lastDraw * .06 + 1e-7);
+}

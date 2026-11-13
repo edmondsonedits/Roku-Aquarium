@@ -16,3 +16,11 @@ The generated panorama is **2172×724**, composed from the three supplied overla
 This is one flattened image with approximate solid occlusion polygons, not a reconstructed 3D scene. Scenery does not yet have independently moving layers; coral silhouettes and hidden surfaces require a later art pass. The technique avoids exposing missing scenery while testing the camera/fish illusion. Native laptop/TV performance and visual polish need checking on the target device. Keep 1080p if 4K stutters.
 
 Original video mode is retained, and no original fish or background file is deleted.
+
+## Graphics QA: high-refresh display budget
+The scene now budgets expensive canvas draws to 60 per second at both render qualities,
+rather than redrawing at 120/144/240 Hz on high-refresh displays. Movement still uses
+elapsed time, and newly loaded fish/resize updates draw immediately. This is a draw
+budget, not a promise of 60 fps on every laptop. Timing tests simulate those refresh
+rates; real TV smoothness, masks and frame costs still require device validation.
+Reference: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame
