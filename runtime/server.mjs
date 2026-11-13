@@ -42,10 +42,14 @@ var Prepared = class _Prepared {
 async function openStorage(dataDir) {
   await mkdir(dataDir, { recursive: true, mode: 448 });
   const db = new DatabaseSync(resolve(dataDir, "aquarium.sqlite"));
-  db.exec("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;");
   const migrations = resolve(dirname(fileURLToPath(import.meta.url)), "../drizzle");
   const files = (await readdir(migrations)).filter((f) => f.endsWith(".sql")).sort();
   const version = Number(db.prepare("PRAGMA user_version").get().user_version);
+  if (version < 0 || version > files.length) {
+    db.close();
+    throw new Error(`Saved data version ${version} is not supported by this copy of Aquarium. Keep your data folder and use the app version that created it or a newer compatible release.`);
+  }
+  db.exec("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;");
   for (let i = version; i < files.length; i++) {
     const sql = await readFile(resolve(migrations, files[i]), "utf8");
     db.exec("BEGIN IMMEDIATE");
