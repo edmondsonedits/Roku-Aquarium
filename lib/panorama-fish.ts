@@ -1,4 +1,4 @@
-import {sampleSwim, type FishPose, type SwimPersonality} from './fish-motion';
+import {smooth,sampleSwim, type FishPose, type SwimPersonality} from './fish-motion';
 
 /** Seekable 3-axis presentation path. Larger depth means closer to the viewer.
  * No artwork or saved fish data is changed. Scale and heading share the same
@@ -15,7 +15,14 @@ export function samplePanoramaFish(personality: SwimPersonality, seconds: number
  const after=sampleSwim(personality,(time+.05)*.65);
  const dx=(after.x-before.x)/(time<.05?.05+time:.1);
  const yaw=Math.abs(dx)/Math.max(.00001,Math.hypot(dx,dz*1.2));
- return {...base,depth,scale:personality.scale*(.76+depth*.9),
+ return {...base,depth,scale:personality.scale*(.62+depth*.8),
   facing:dx>=0?1:-1,yaw,turn:dz>=0?1:-1,
   amplitude:base.amplitude*.65,opacity:1};
+}
+
+/** Apply after separation so the school viewport clamp cannot undo the rise. */
+export function riseAcrossCoral(pose:FishPose,reduced=false):FishPose {
+ if(reduced)return pose;
+ const crossing=smooth(1-Math.abs(pose.depth-.58)/.14);
+ return {...pose,y:pose.y*(1-crossing)+.135*crossing,scale:pose.scale*(1-crossing)+Math.min(pose.scale,.8)*crossing};
 }

@@ -4,6 +4,7 @@ import { buildFishVolume } from "../../../lib/fish-volume";
 
 const VERTEX = `
 attribute vec3 a_vertex;
+attribute vec2 a_uv;
 uniform vec2 u_view, u_center, u_size, u_head, u_tail;
 uniform vec4 u_bounds;
 uniform float u_facing, u_yaw, u_turn, u_pitch, u_phase, u_amplitude;
@@ -25,8 +26,8 @@ void main() {
   float c = cos(u_pitch), s = sin(u_pitch);
   p = vec2(p.x * c - p.y * s, p.x * s + p.y * c) + u_center;
   gl_Position = vec4(p.x / u_view.x * 2. - 1., 1. - p.y / u_view.y * 2., -depth / max(1., u_size.x), 1.);
-  v_uv = uv;
-  v_shade = .86 + .14 * u_yaw;
+  v_uv = a_uv;
+  v_shade = .84 + .12 * u_yaw + .08 * (1. - uv.y);
 }`;
 const FRAGMENT = `precision mediump float; varying vec2 v_uv; varying float v_shade; uniform sampler2D u_image; uniform float u_opacity; void main() { vec4 ink = texture2D(u_image, v_uv); if (ink.a < .02) discard; gl_FragColor = vec4(ink.rgb * v_shade, ink.a) * u_opacity; }`;
 
@@ -39,6 +40,7 @@ export class FishMesh {
   private layer = 0;
   private bands = 40;
   private position: number;
+  private uvPosition: number;
   private assets = new Map<string, FishMeshAsset>();
   constructor(canvas: HTMLCanvasElement) {
     const gl = canvas.getContext("webgl", { alpha: true, antialias: true, premultipliedAlpha: true, powerPreference: "low-power", preserveDrawingBuffer: false });
@@ -51,6 +53,7 @@ export class FishMesh {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { const reason = gl.getProgramInfoLog(program); gl.deleteProgram(program); throw new Error(`Program could not link: ${reason}`); }
     this.program = program;
     this.position = gl.getAttribLocation(program, "a_vertex");
+    this.uvPosition = gl.getAttribLocation(program, "a_uv");
     this.uniforms = Object.fromEntries(["view", "center", "size", "head", "tail", "bounds", "facing", "yaw", "turn", "pitch", "phase", "amplitude", "opacity", "image"].map(key => [key, gl.getUniformLocation(program, `u_${key}`)]));
     gl.useProgram(program); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LESS);
@@ -104,7 +107,8 @@ export class FishMesh {
     const far = 1 - this.layer++ / this.bands;
     gl.depthRange(Math.max(0, far - 1 / this.bands), far);
     gl.bindBuffer(gl.ARRAY_BUFFER, asset.vertices); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, asset.indices);
-    gl.enableVertexAttribArray(this.position); gl.vertexAttribPointer(this.position, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(this.position); gl.vertexAttribPointer(this.position, 3, gl.FLOAT, false, 20, 0);
+    gl.enableVertexAttribArray(this.uvPosition);gl.vertexAttribPointer(this.uvPosition, 2, gl.FLOAT, false, 20, 12);
     const size = fishSize(entry, pose, width, height);
     gl.bindTexture(gl.TEXTURE_2D, asset.texture);
     gl.uniform2f(u.center!, pose.x * width, pose.y * height); gl.uniform2f(u.size!, size.width, size.height);

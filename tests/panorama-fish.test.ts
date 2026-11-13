@@ -22,3 +22,11 @@ test('sampling does not alter personality or accumulate frame-rate drift',()=>{
  for(let i=0;i<300;i++)samplePanoramaFish(p,i/10);
  assert.deepEqual(samplePanoramaFish(p,30),expected);assert.deepEqual(p,original);
 });
+
+import {riseAcrossCoral} from '../lib/panorama-fish';
+import {separateFish} from '../lib/fish-motion';
+test('coral crossover rise runs after separation',()=>{
+ const pose={...samplePanoramaFish(swimPersonality(4),2),depth:.58,y:.5};
+ const result=separateFish([pose]).map(p=>riseAcrossCoral(p));
+ assert.equal(result[0]!.y,.135);assert.equal(riseAcrossCoral(pose,true),pose);
+});

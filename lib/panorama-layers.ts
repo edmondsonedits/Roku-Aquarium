@@ -5,8 +5,8 @@ export function foregroundFronds(progress:number,width:number,height:number,seco
  return Array.from({length:9},(_,i)=>({
   x:(i/8)*world-progress*(world-width),
   y:height*1.04,
-  height:height*(.12+(i%3)*.035),
+  height:height*(.24+(i%3)*.055),
   sway:Math.sin(seconds*.55+i*1.7)*height*.012,
-  width:Math.max(2,height*.004),
+  width:Math.max(2,height*.002),
  }));
 }
