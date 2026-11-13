@@ -12,3 +12,36 @@ test('failed swap restores previous app',async t=>{const {source,dest}=await fix
 test('recovers interrupted rename and refuses unknown files instead of deleting',async t=>{const {source,dest}=await fixture(t);await pack(source,'old');await installPackage(source,dest);await rename(join(dest,'current'),join(dest,'previous'));await installPackage(source,dest);await writeFile(join(dest,'current','my-fish.png'),'personal');await pack(source,'new');await assert.rejects(installPackage(source,dest),/Unexpected files/);assert.equal(await readFile(join(dest,'current','my-fish.png'),'utf8'),'personal');});
 test('corrupt download cannot replace installed app',async t=>{const {source,dest}=await fixture(t);await pack(source,'old');await installPackage(source,dest);await pack(source,'new');await writeFile(join(source,'runtime/server.mjs'),'corrupt');await assert.rejects(installPackage(source,dest),/check failed/);assert.equal(await readFile(join(dest,'current/runtime/server.mjs'),'utf8'),'old');});
 test('unexpected empty folders block cleanup',async t=>{const {source,dest}=await fixture(t);await pack(source,'old');await installPackage(source,dest);await mkdir(join(dest,'current','personal-folder'));await pack(source,'new');await assert.rejects(installPackage(source,dest),/Unexpected files/);});
+
+test('interruption after staging preserves installed app and exact saved artwork bytes', async t => {
+  const { root, source, dest } = await fixture(t);
+  const image = Buffer.from([137, 80, 78, 71, 0, 255, 128, 42]);
+  const imagePath = join(root, 'saves', 'fish.png');
+  await writeFile(imagePath, image);
+  await pack(source, 'old');
+  await installPackage(source, dest);
+  await pack(source, 'new');
+  await assert.rejects(installPackage(source, dest, async stage => {
+    if (stage === 'staged') throw new Error('interrupted before swap');
+  }), /interrupted before swap/);
+  assert.equal(await readFile(join(dest, 'current/runtime/server.mjs'), 'utf8'), 'old');
+  assert.deepEqual(await readFile(imagePath), image);
+  // A subsequent successful retry is safe and does not require rebuilding saves.
+  await installPackage(source, dest);
+  assert.equal(await readFile(join(dest, 'current/runtime/server.mjs'), 'utf8'), 'new');
+  assert.deepEqual(await readFile(imagePath), image);
+});
+
+test('successful-start cleanup preserves unexpected files in the previous app', async t => {
+  const { source, dest } = await fixture(t);
+  await pack(source, 'old');
+  await installPackage(source, dest);
+  await pack(source, 'new');
+  await installPackage(source, dest);
+  const personalPath = join(dest, 'previous', 'my-drawing.png');
+  await writeFile(personalPath, 'irreplaceable drawing');
+  await assert.rejects(removeVerifiedPrevious(dest), /Unexpected files/);
+  assert.equal(await readFile(personalPath, 'utf8'), 'irreplaceable drawing');
+  assert.equal(await readFile(join(dest, 'previous/runtime/server.mjs'), 'utf8'), 'old');
+  assert.equal(await readFile(join(dest, 'current/runtime/server.mjs'), 'utf8'), 'new');
+});
