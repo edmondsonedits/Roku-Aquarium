@@ -23,3 +23,9 @@
  .selection-toolbar .text-button{min-height:44px;padding:6px 8px}
  .display-stage:fullscreen .stage-label{display:none}
 }
+
+/* Contextual setup help stays outside the TV stage and never blocks drawing. */
+.host-setup{margin:0 0 20px;border:1px solid var(--line);border-radius:12px;padding:0 16px;background:#fffef9}
+.host-setup summary{cursor:pointer;padding:13px 0;font-weight:600;min-height:44px}
+.host-setup ol{padding-left:22px;margin:0 0 12px}.host-setup li{margin:8px 0;line-height:1.6}
+.host-setup p{margin:0 0 16px;line-height:1.6}.host-setup li,.host-setup p{font-size:14px}
