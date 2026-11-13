@@ -14,5 +14,5 @@ if errorlevel 1 (
 )
 echo Keep this window open while the aquarium is running.
 echo Open http://localhost:4317 on this computer.
-node runtime/server.mjs
+node standalone/install-windows.mjs
 pause

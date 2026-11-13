@@ -1,0 +1,9 @@
+{
+  "kind": "work-aquarium-app-v1",
+  "files": {
+    "dist-local/assets/index-CBVaE-bf.css": "33d6c52f69d142dc812e7293d71c3a45920e24e13fb88678d8d804a74f637446",
+    "dist-local/assets/index-mGSyVF05.js": "fe6a65ddb0732f6e23a74af20a631ee760a9bd8e3c649ffc82247570ff191423",
+    "dist-local/index.html": "89a623ad7df218117e6092cdd4834bdd102f49e46dd88770156c27aee8634284",
+    "runtime/server.mjs": "2d8108a3c9f8dcfd22df556f6d2cbf5bf127c61baf3b301b74602e21aeb83c8a"
+  }
+}

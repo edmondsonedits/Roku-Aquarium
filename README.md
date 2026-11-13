@@ -8,7 +8,7 @@ This is a laptop web app, not an installable Roku channel. Connect the laptop to
 
 1. Install **Node.js 24 LTS or newer** from https://nodejs.org on the laptop. This is a one-time setup.
 2. On this repository, choose **Code → Download ZIP**, then extract the whole folder. Do not run it inside the ZIP.
-3. **Windows:** double-click `START-WINDOWS.bat`.
+3. **Windows:** double-click `START-WINDOWS.bat`. It installs/updates one permanent app folder while leaving saved fish and backdrops in place. For later launches use `%USERPROFILE%\.work-aquarium-app\START-AQUARIUM.bat` (you can copy this small launcher to your Desktop). See [simple Windows updates](docs/SIMPLE-WINDOWS-UPDATES.md).
    **Mac/Linux:** open a terminal in the extracted folder and run `sh START-MAC-LINUX.command`.
 4. Keep that terminal window open. Open **http://localhost:4317** in Chrome, Edge, Firefox, or Safari on the laptop.
 5. Create an aquarium and **save the private recovery key** somewhere safe. The key restores host access if browser cookies are lost.
