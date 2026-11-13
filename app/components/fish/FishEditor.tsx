@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { beginPinch, movePinch, type Pinch, type ViewTransform } from "../../../lib/drawing-editor";
+import { DEFAULT_PAINT_SETTINGS, changePaintSetting } from "../../../lib/paint-settings";
 import { colorLabel, PALETTE_COLORS } from "../../../lib/editor-accessibility";
 import { useDisclosureFocus } from "./useDisclosureFocus";
 import { constrainFishPart, drawSwimmingFish, emptyFishDocument, exportFishPng, fishHasArtwork, fishPartContains, fishPartPoint, FISH_ARTBOARD, FISH_MAX_PARTS, makeFishPart, parseFishDraft, renderFish, renderFishToolPreview, upgradeFishDocument, validFishDocument, type ArtPoint, type FishDocument, type FishPaint, type FishPart } from "../../../lib/fish-art";
@@ -61,7 +62,7 @@ export function FishEditor({ draftKey, untimed = false, deadline, serverTime, pa
   const [historyState, setHistoryState] = useState({ undo: false, redo: false });
   const drawingRef = useRef(drawing); const past = useRef<FishDocument[]>([]); const future = useRef<FishDocument[]>([]);
   const [tool, setTool] = useState<Tool>("spray"); const [toolSettings, setToolSettings] = useState(false); const stripDrag = useRef({ x: 0, scroll: 0, moved: false }); const [mode, setMode] = useState<"body" | "parts">("body"); const [paintTarget, setPaintTarget] = useState<"body" | "free">("body");
-  const [color, setColor] = useState<string>("#111A39"); const [size, setSize] = useState(14); const [spraySize, setSpraySize] = useState(144); const [opacity, setOpacity] = useState(0.5); const [brushOpacity, setBrushOpacity] = useState(1); const [showIntro, setShowIntro] = useState(true); const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [color, setColor] = useState<string>("#111A39"); const [paintSettings, setPaintSettings] = useState(DEFAULT_PAINT_SETTINGS); const [showIntro, setShowIntro] = useState(true); const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedRef = useRef<string | null>(null); const [view, setView] = useState<ViewTransform>(DEFAULT_VIEW); const viewRef = useRef(view);
   const canvas = useRef<HTMLCanvasElement>(null); const stage = useRef<HTMLDivElement>(null); const source = useRef<HTMLCanvasElement | null>(null);
   const gesture = useRef<Gesture>(IDLE); const pointers = useRef(new Map<number, ArtPoint>()); const frame = useRef<number | null>(null); const dwell = useRef<number | null>(null);
@@ -77,6 +78,13 @@ export function FishEditor({ draftKey, untimed = false, deadline, serverTime, pa
   useDisclosureFocus(bodyPicker && !locked && !preview, bodyPanel);
   useDisclosureFocus(toolSettings && !locked && !preview, toolPanel);
   const remaining = Math.max(0, Math.ceil((deadline - now) / 1000));
+  const activePaintTool = tool === "spray" || tool === "eraser" ? tool : "pen";
+  const activePaint = paintSettings[activePaintTool];
+  const size = activePaint.size;
+  const brushOpacity = activePaint.opacity;
+  const spraySize = paintSettings.spray.size;
+  const opacity = paintSettings.spray.opacity;
+  const paintName = activePaintTool === "spray" ? "Spray" : activePaintTool === "eraser" ? "Eraser" : "Brush";
   const selected = drawing.parts.find(part => part.id === selectedId);
   const setSelection = useCallback((id: string | null) => { selectedRef.current = id; setSelectedId(id); }, []);
   const updateView = useCallback((next: ViewTransform) => { viewRef.current = next; setView(next); }, []);
@@ -323,9 +331,9 @@ export function FishEditor({ draftKey, untimed = false, deadline, serverTime, pa
         <p className={styles.pickerNote}>Choosing a new body replaces your drawing. Undo brings it back.</p>
       </section>}
 
-{toolSettings && !locked && !preview && <div ref={toolPanel} className={styles.toolPopover} role="region" aria-label="Tool settings"><strong>{tool === "spray" ? "Spray" : tool === "eraser" ? "Eraser" : "Brush"} settings</strong>          <label className={styles.rangeLabel}><span>{tool === "spray" ? <>Spray size <strong>{spraySize}</strong></> : <>Brush <strong>{size}</strong></>}</span><input aria-label={tool === "spray" ? "Spray size" : "Brush size"} type="range" min={tool === "spray" ? 6 : 2} max={tool === "spray" ? 160 : 64} value={tool === "spray" ? spraySize : size} onChange={event => tool === "spray" ? setSpraySize(Number(event.target.value)) : setSize(Number(event.target.value))} /></label>
-          <label className={styles.rangeLabel}><span>Opacity <strong>{Math.round((tool === "spray" ? opacity : brushOpacity) * 100)}%</strong></span><input aria-label={tool === "spray" ? "Spray opacity" : "Brush opacity"} type="range" min="5" max="100" value={Math.round((tool === "spray" ? opacity : brushOpacity) * 100)} onChange={event => tool === "spray" ? setOpacity(Number(event.target.value) / 100) : setBrushOpacity(Number(event.target.value) / 100)} /></label>
-<span>Changes apply immediately.</span><button type="button" onClick={() => setToolSettings(false)}>Done ✓</button></div>}
+{toolSettings && !locked && !preview && <div ref={toolPanel} className={styles.toolPopover} role="region" aria-label="Tool settings"><strong>{tool === "spray" ? "Spray" : tool === "eraser" ? "Eraser" : "Brush"} settings</strong>          <label className={styles.rangeLabel}><span>{<>{paintName} size <strong>{size}</strong></>}</span><input aria-label={`${paintName} size`} type="range" min={tool === "spray" ? 6 : 2} max={tool === "spray" ? 160 : 64} value={tool === "spray" ? spraySize : size} onChange={event => setPaintSettings(current => changePaintSetting(current, activePaintTool, {size: Number(event.target.value)}))} /></label>
+          <label className={styles.rangeLabel}><span>Opacity <strong>{Math.round((tool === "spray" ? opacity : brushOpacity) * 100)}%</strong></span><input aria-label={`${paintName} opacity`} type="range" min="5" max="100" value={Math.round((tool === "spray" ? opacity : brushOpacity) * 100)} onChange={event => setPaintSettings(current => changePaintSetting(current, activePaintTool, {opacity: Number(event.target.value) / 100}))} /></label>
+<span>Changes apply immediately. Each tool remembers its own size and opacity while you draw.</span><button type="button" onClick={() => setToolSettings(false)}>Done ✓</button></div>}
         <div ref={stage} className={`${styles.stage} ${preview ? styles.water : ""}`} aria-label="Fish canvas" onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={event => pointerEnd(event)} onPointerCancel={event => pointerEnd(event, true)} onLostPointerCapture={event => pointerEnd(event, true)} onPointerLeave={() => { if (gesture.current.kind === "idle") setBrushPreview(null); }} onContextMenu={event => event.preventDefault()}>
         <div className={styles.artboard} style={{ width: fit.width, height: fit.height, transform: `translate(-50%, -50%) translate(${view.pan.x}px, ${view.pan.y}px) scale(${view.zoom})` }}><canvas ref={canvas} width={FISH_ARTBOARD.width} height={FISH_ARTBOARD.height} aria-label="Your fish. Its head faces right and tail faces left." role="img" />{!preview && displayedBrushPreview && tool !== "eraser" && <canvas ref={previewCanvas} data-testid="fish-tool-preview" className={styles.toolPreview} width={FISH_ARTBOARD.width} height={FISH_ARTBOARD.height} style={{ left: 0, top: 0, width: fit.width, height: fit.height }} aria-hidden="true" />}{!preview && displayedBrushPreview && tool === "eraser" && <i className={styles.brushCursor} aria-hidden="true" style={{ left: displayedBrushPreview.x * fit.width / FISH_ARTBOARD.width, top: displayedBrushPreview.y * fit.height / FISH_ARTBOARD.height, width: size * fit.width / FISH_ARTBOARD.width, height: size * fit.height / FISH_ARTBOARD.width }} />}</div>
         {!preview && !showIntro && <span className={styles.headCue} aria-hidden="true">Tail ← · → Head</span>}
