@@ -1,3 +1,4 @@
+import {listenFailureMessage} from './startup-error';
 import {createServer} from 'node:http';
 import {createReadStream} from 'node:fs';
 import {stat} from 'node:fs/promises';
@@ -31,6 +32,7 @@ return {server,port,dataDir};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
 const {server,port,dataDir}=await createAquariumServer();
+server.once('error',(error)=>{console.error(listenFailureMessage(error,port));process.exitCode=1;server.close();});
 server.listen(port,'0.0.0.0',()=>{console.log(`The Work Aquarium: http://localhost:${port}`);console.log(`Phone addresses: ${lanOrigins(port).join(', ')||'No private LAN address detected'}`);console.log(`Saved fish and backgrounds: ${dataDir}`);});
 for(const signal of ['SIGTERM','SIGINT'] as const)process.on(signal,()=>server.close(()=>process.exit(0)));
 }

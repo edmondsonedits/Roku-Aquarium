@@ -1,3 +1,16 @@
+// standalone/startup-error.ts
+function listenFailureMessage(error, port) {
+  const code = error && typeof error === "object" && "code" in error ? error.code : void 0;
+  if (code === "EADDRINUSE") {
+    return `Port ${port} is already in use. Check whether your existing aquarium is open at http://localhost:${port}. Close that server with Ctrl+C before restarting. Do not start two aquarium servers using the same saved-data folder. If another app owns this port, see the README for choosing a different port.`;
+  }
+  if (code === "EACCES" || code === "EPERM") {
+    return `The aquarium could not use port ${port}: the operating system denied access. Ask workplace IT which local-network setup is permitted. No network settings have been changed.`;
+  }
+  const detail = error instanceof Error ? error.message : "Unknown server error";
+  return `The aquarium could not start on port ${port}. ${detail}`;
+}
+
 // standalone/server.ts
 import { createServer } from "node:http";
 import { createReadStream as createReadStream2 } from "node:fs";
@@ -657,6 +670,11 @@ async function createAquariumServer(options = {}) {
 }
 if (process.argv[1] && resolve3(process.argv[1]) === fileURLToPath2(import.meta.url)) {
   const { server, port, dataDir } = await createAquariumServer();
+  server.once("error", (error) => {
+    console.error(listenFailureMessage(error, port));
+    process.exitCode = 1;
+    server.close();
+  });
   server.listen(port, "0.0.0.0", () => {
     console.log(`The Work Aquarium: http://localhost:${port}`);
     console.log(`Phone addresses: ${lanOrigins(port).join(", ") || "No private LAN address detected"}`);

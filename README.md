@@ -81,3 +81,9 @@ The implementation reuses the fish editor and swimming components from the callb
 The release is checked with automated tests for durable fish storage, restart recovery, duplicate-delivery handling, room permissions, draft recovery, capacity limits, image validation, video streaming/range requests, failed and concurrent video replacements, and local-network host validation, plus TypeScript, lint, and production build checks.
 
 Physical phone-to-laptop Wi-Fi, TV mirroring, and 1 GB browser video playback must be verified on your actual equipment. A browser video-upload test in the build environment was not completed. The local streaming API is tested with synthetic data; no personal media was used or published.
+
+### If the aquarium will not start
+
+If the terminal says the port is already in use, first open the existing aquarium at the printed localhost address. You may already have it running in another terminal. Stop that server with Ctrl+C before starting a replacement; do not run two servers against the same data folder. Do not delete your data to fix a port conflict.
+
+If a different application needs the default port, start the aquarium with `node runtime/server.mjs --port 5000`, then use the new printed address and QR code. This changes the browser address, so have your aquarium recovery key available. If the operating system denies access, ask workplace IT for an approved setup rather than disabling protection.
