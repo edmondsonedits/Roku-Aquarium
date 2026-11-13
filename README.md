@@ -87,3 +87,7 @@ Physical phone-to-laptop Wi-Fi, TV mirroring, and 1 GB browser video playback mu
 If the terminal says the port is already in use, first open the existing aquarium at the printed localhost address. You may already have it running in another terminal. Stop that server with Ctrl+C before starting a replacement; do not run two servers against the same data folder. Do not delete your data to fix a port conflict.
 
 If a different application needs the default port, start the aquarium with `node runtime/server.mjs --port 5000`, then use the new printed address and QR code. This changes the browser address, so have your aquarium recovery key available. If the operating system denies access, ask workplace IT for an approved setup rather than disabling protection.
+
+### Multi-participant browser smoke test
+
+For development/QA, run `npx playwright install chromium`, then `npm run test:browser` after `npm ci`. This uses disposable data and a dedicated local test server, not your saved aquarium. See [the validation guide](docs/reviews/2026-11-13-vault-validation.md) for coverage, screenshots, video inspection and limitations.

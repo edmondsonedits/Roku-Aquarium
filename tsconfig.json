@@ -29,7 +29,9 @@
     "standalone/**/*.ts",
     "standalone/**/*.tsx",
     "tests/**/*.ts",
-    "vite.local.config.ts"
+    "vite.local.config.ts",
+    "e2e/**/*.ts",
+    "playwright.config.ts"
   ],
   "exclude": [
     "node_modules",
