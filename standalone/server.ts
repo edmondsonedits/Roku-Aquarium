@@ -17,6 +17,8 @@ const args=process.argv;const portIndex=args.indexOf('--port');
 const port=options.port??Number((portIndex>=0?args[portIndex+1]:undefined)||process.env.PORT||4317);if(!Number.isInteger(port)||port<1||port>65535)throw new Error('PORT must be between 1 and 65535.');
 const dataDir=resolve(options.dataDir||process.env.AQUARIUM_DATA_DIR||resolve(homedir(),'.work-aquarium'));
 const staticRoot=options.staticDir?resolve(options.staticDir):resolve(dirname(fileURLToPath(import.meta.url)),'../dist-local');
+const entry=await stat(resolve(staticRoot,'index.html')).catch(()=>null);
+if(!entry?.isFile())throw new Error('The aquarium package is incomplete. Use Extract All on the full download and keep its folders together, or rebuild with npm run build:local. Your saved fish have not been changed.');
 const storage=await openStorage(dataDir),env=storage as unknown as AquariumEnv;
 const mime:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.woff2':'font/woff2'};
 const server=createServer(async(incoming,outgoing)=>{try{
