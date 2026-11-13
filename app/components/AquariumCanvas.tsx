@@ -7,13 +7,13 @@ import { clamp, fishSeed, sampleSwim, separateFish, swimPersonality, type FishPo
 import { FishMesh, fishSize } from "./fish/FishMesh";
 
 type Asset = { source: string; image: HTMLImageElement; entry: FishFinalePublicEntry; ready: boolean; failedAt: number; timer?: ReturnType<typeof setTimeout> };
-const entryFor = (fish: AquariumFish): FishFinalePublicEntry => ({
+export const entryFor = (fish: AquariumFish): FishFinalePublicEntry => ({
   id: fish.id, label: fish.name, practice: false, appearanceSeed: fishSeed(fish.id),
   width: 1024, height: 768, bounds: fish.bounds,
   anchors: { head: { x: 820 / 1024, y: .5 }, body: { x: 548 / 1024, y: .5 }, tail: { x: 164 / 1024, y: .5 } },
 });
 
-function drawSprite(ctx: CanvasRenderingContext2D, image: HTMLImageElement, entry: FishFinalePublicEntry, pose: FishPose, width: number, height: number) {
+export function drawSprite(ctx: CanvasRenderingContext2D, image: HTMLImageElement, entry: FishFinalePublicEntry, pose: FishPose, width: number, height: number) {
   const size = fishSize(entry, pose, width, height);
   ctx.save(); ctx.translate(pose.x * width, pose.y * height); ctx.rotate(pose.pitch * pose.facing); ctx.scale(pose.facing * Math.max(.035, pose.yaw), 1); ctx.globalAlpha = pose.opacity;
   const left = -(entry.bounds.x + entry.bounds.width / 2) * size.width, top = -(entry.bounds.y + entry.bounds.height / 2) * size.height;

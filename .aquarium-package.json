@@ -1,9 +1,11 @@
 {
   "kind": "work-aquarium-app-v1",
   "files": {
-    "dist-local/assets/index-CBVaE-bf.css": "33d6c52f69d142dc812e7293d71c3a45920e24e13fb88678d8d804a74f637446",
-    "dist-local/assets/index-mGSyVF05.js": "fe6a65ddb0732f6e23a74af20a631ee760a9bd8e3c649ffc82247570ff191423",
-    "dist-local/index.html": "89a623ad7df218117e6092cdd4834bdd102f49e46dd88770156c27aee8634284",
+    "dist-local/assets/index-6fmJdMmm.js": "3d49e7fc42d0d3e5f42c4d85edfb5fc7876ca3e105f74ca150267958ddc2e1db",
+    "dist-local/assets/index-C8OMcG2g.css": "a094ba7f1a703c749bc5fd1d9aa8a0dfb5f86d5bd8c24c5fbdeef2ba6a08d486",
+    "dist-local/index.html": "32b5846bdb4364ecc193f9d423af23ddd28df7b8eb1751b824932f9cdd2b1e97",
+    "dist-local/panorama/aquarium.png": "f00a8cbbef55f05a6f11c7694116e5903395b53f0a05f63e6ce50bd699383a2c",
+    "dist-local/panorama/scene.json": "870230cc19af63637e84dab85a79102d0b57db1b7a85e0392d42585502ad4a8a",
     "runtime/server.mjs": "2d8108a3c9f8dcfd22df556f6d2cbf5bf127c61baf3b301b74602e21aeb83c8a"
   }
 }
