@@ -1,5 +1,6 @@
 import type { FishFinalePublicEntry } from "../../../lib/arcade/fish-finale";
 import type { FishPose } from "../../../lib/fish-motion";
+import { fishWaterLighting } from "../../../lib/fish-lighting";
 import { buildFishSurface } from "../../../lib/fish-surface";
 
 const VERTEX = `
@@ -28,7 +29,7 @@ void main() {
   v_uv = a_uv;
   v_shade = .98 + .02 * u_yaw;
 }`;
-const FRAGMENT = `precision mediump float; varying vec2 v_uv; varying float v_shade; uniform sampler2D u_image; uniform float u_opacity; void main() { vec4 ink = texture2D(u_image, v_uv); if (ink.a < .02) discard; gl_FragColor = vec4(ink.rgb * v_shade, ink.a) * u_opacity; }`;
+const FRAGMENT = `precision mediump float; varying vec2 v_uv; varying float v_shade; uniform sampler2D u_image; uniform float u_opacity, u_brightness, u_haze; void main() { vec4 ink = texture2D(u_image, v_uv); if (ink.a < .02) discard; float form = 1. - .065 * smoothstep(.2, .7, abs(v_uv.y - .42)); vec3 lit = mix(ink.rgb * v_shade * u_brightness * form, vec3(.12, .46, .53) * ink.a, u_haze); gl_FragColor = vec4(lit, ink.a) * u_opacity; }`;
 
 type FishMeshAsset = { texture: WebGLTexture; vertices: WebGLBuffer; indices: WebGLBuffer; count: number };
 /** Double-sided continuous artwork ribbon. Depth travel is 2.5D, not an invented 3D animal. */
@@ -53,7 +54,7 @@ export class FishMesh {
     this.program = program;
     this.position = gl.getAttribLocation(program, "a_vertex");
     this.uvPosition = gl.getAttribLocation(program, "a_uv");
-    this.uniforms = Object.fromEntries(["view", "center", "size", "head", "tail", "bounds", "facing", "yaw", "turn", "pitch", "phase", "amplitude", "opacity", "image"].map(key => [key, gl.getUniformLocation(program, `u_${key}`)]));
+    this.uniforms = Object.fromEntries(["view", "center", "size", "head", "tail", "bounds", "facing", "yaw", "turn", "pitch", "phase", "amplitude", "opacity", "brightness", "haze", "image"].map(key => [key, gl.getUniformLocation(program, `u_${key}`)]));
     gl.useProgram(program); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LESS);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
@@ -112,6 +113,8 @@ export class FishMesh {
     gl.uniform2f(u.head!, entry.anchors.head.x, entry.anchors.head.y); gl.uniform2f(u.tail!, entry.anchors.tail.x, entry.anchors.tail.y);
     gl.uniform4f(u.bounds!, entry.bounds.x, entry.bounds.y, entry.bounds.width, entry.bounds.height);
     gl.uniform1f(u.facing!, pose.facing); gl.uniform1f(u.yaw!, pose.yaw); gl.uniform1f(u.turn!, pose.turn ?? 1); gl.uniform1f(u.pitch!, pose.pitch * pose.facing);
+    const lighting=fishWaterLighting(pose.depth);
+    gl.uniform1f(u.brightness!,lighting.brightness);gl.uniform1f(u.haze!,lighting.haze);
     gl.uniform1f(u.phase!, pose.tailPhase); gl.uniform1f(u.amplitude!, pose.amplitude); gl.uniform1f(u.opacity!, pose.opacity);
     gl.drawElements(gl.TRIANGLES, asset.count, gl.UNSIGNED_SHORT, 0);
   }

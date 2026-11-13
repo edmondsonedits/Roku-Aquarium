@@ -1,9 +1,9 @@
 {
   "kind": "work-aquarium-app-v1",
   "files": {
-    "dist-local/assets/index-C8OMcG2g.css": "a094ba7f1a703c749bc5fd1d9aa8a0dfb5f86d5bd8c24c5fbdeef2ba6a08d486",
-    "dist-local/assets/index-kejkMm4A.js": "9a66f42ddce6ec54d020a5432a2c807ac2359a75577610263baa1a51a514ceab",
-    "dist-local/index.html": "72e7ef3bbbe8ca5851cf93d662a3e7513c30106f1170f4354fbbd659d1455fbf",
+    "dist-local/assets/index-C2-3SzkC.css": "59e370b47cf6f2ab51b0140e741bdf009ba658cecd1a48e1cb8d0bd723e01b5a",
+    "dist-local/assets/index-CgJSg7jW.js": "c356e25c3c1584bc6e5ba58c79ac40ae13d28629a553bf66ffb4a758d37e49d0",
+    "dist-local/index.html": "f028bf01e3284b5fa0fdfcf6780047506e9b43032a0b726c2f9e8c1275a2be3f",
     "dist-local/panorama/aquarium.png": "f00a8cbbef55f05a6f11c7694116e5903395b53f0a05f63e6ce50bd699383a2c",
     "dist-local/panorama/coral-cutout.png": "204d3659b1f48a9bdab36e71833fa520bfd45f87600c41de28421a693f7e426f",
     "dist-local/panorama/foreground-coral.png": "645479890ceea9ad01b859ea1969f575e3c7db0902aae6a90fb2f42120ffe37c",

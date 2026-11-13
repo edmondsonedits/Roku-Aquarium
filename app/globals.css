@@ -49,3 +49,13 @@
 @media(orientation:landscape) and (max-height:500px){.draw-workspace .draw-header{height:36px;min-height:36px}.draw-session>summary{min-height:32px}}
 
 .draw-workspace .draw-state-notice{flex:none;margin:0;padding:6px 10px;background:#fff4d6;color:#453b20;font-size:12px;line-height:1.3}
+
+/* Quiet viewing keeps one explicit, touch/keyboard accessible way back to controls. */
+.tv-join-chip{display:none}
+.display-stage:fullscreen .tv-join-chip{display:flex;position:absolute;z-index:12;right:var(--tv-safe-x);top:var(--tv-safe-y);align-items:center;gap:.5em;min-height:44px;padding:9px 16px;border:1px solid #a7d5d45c;border-radius:24px;background:#103d43ed;color:#fff;font-size:clamp(13px,1.2vw,24px)}
+.tv-join-chip span{font-weight:700;letter-spacing:.12em}
+.tv-join-close{align-self:flex-end;min-height:44px;padding:6px 12px;background:#e9f1eb;border-radius:8px;color:#143f3d;font-size:14px}
+.display-actions .view-mode-button{width:auto;display:flex;gap:7px;padding:0 12px;font-size:12px}
+.viewing-controls>button:not(.view-mode-button){display:none}
+.viewing-controls .view-mode-button{background:#103d43c9;border-radius:24px}
+@media(prefers-reduced-motion:reduce){.hidden-controls{transition:none}}

@@ -4,7 +4,8 @@ import type {AquariumFish} from '../../lib/aquarium-contracts';
 import {separateFish,swimPersonality,fishSeed} from '../../lib/fish-motion';
 import {panoramaCamera,panoramaLayout,PANORAMA_OCCLUSION_DEPTH} from '../../lib/panorama-motion';
 import {samplePanoramaFish,riseAcrossCoral} from '../../lib/panorama-fish';
-import {foregroundFronds} from '../../lib/panorama-layers';
+import {foregroundFronds,frondBlade} from '../../lib/panorama-layers';
+import {waterMotes} from '../../lib/aquarium-atmosphere';
 import {entryFor} from './AquariumCanvas';
 import {PanoramaFishRenderer} from './fish/PanoramaFishRenderer';
 
@@ -56,16 +57,35 @@ export function PanoramaAquariumCanvas({fish,reducedMotion,paused,bubbles,qualit
     const band=sorted.filter(({p})=>(p.depth>=PANORAMA_OCCLUSION_DEPTH)===front).map(({s,p})=>({image:s.image,entry:entryFor(s.fish),pose:{...p,x:(p.x*layout.width+layout.x)/w,y:(p.y*layout.height+layout.y)/h}}));
     renderer.drawBand(ctx,band,w,h);
    };
+   // Light and suspended specks live behind the animals, never wash out their art.
+   if(bubbles&&!reducedMotion){
+    for(let i=0;i<3;i++){
+     const x=w*(.12+i*.34)+Math.sin(elapsed*.055+i)*w*.025;
+     const light=ctx.createLinearGradient(x,0,x+w*.14,h*.78);
+     light.addColorStop(0,'rgba(230,255,255,.065)');light.addColorStop(1,'rgba(230,255,255,0)');
+     ctx.fillStyle=light;ctx.beginPath();ctx.moveTo(x-w*.018,0);ctx.lineTo(x+w*.02,0);ctx.lineTo(x+w*.23,h*.78);ctx.lineTo(x+w*.05,h*.78);ctx.closePath();ctx.fill();
+    }
+    for(const mote of waterMotes(elapsed,w,h)){ctx.fillStyle=`rgba(221,250,247,${mote.alpha})`;ctx.beginPath();ctx.arc(mote.x,mote.y,mote.radius,0,Math.PI*2);ctx.fill();}
+   }
    drawBand(false);
    // Actual coral alpha occludes rear fish, replacing coarse polygon patches.
    if(ready)ctx.drawImage(image,layout.x,layout.y,layout.width,layout.height);
    drawBand(true);
    el.dataset.fishRenderer=renderer.mode;
-   if(foregroundReady){const fw=h*.66,fh=fw*foreground.naturalHeight/foreground.naturalWidth;for(const anchor of [.08,.91]){const x=anchor*w-(progress-.5)*w*.22;ctx.drawImage(foreground,x-fw/2,h-fh*.78,fw,fh);}}
-   // Separate world-space foreground has stronger parallax and gentle plant sway.
-   ctx.save();ctx.strokeStyle='rgba(22,100,74,.9)';ctx.fillStyle='rgba(35,133,91,.9)';ctx.lineCap='round';
-   for(const plant of foregroundFronds(progress,w,h,reducedMotion?0:elapsed)){
-    for(let j=-1;j<=1;j++){ctx.lineWidth=plant.width;ctx.beginPath();ctx.moveTo(plant.x,plant.y);ctx.bezierCurveTo(plant.x+j*h*.03-h*.009,plant.y-plant.height*.3,plant.x+plant.sway-j*h*.02-h*.006,plant.y-plant.height*.75,plant.x+plant.sway+j*h*.025,plant.y-plant.height);ctx.bezierCurveTo(plant.x+plant.sway-j*h*.02+h*.009,plant.y-plant.height*.72,plant.x+j*h*.03+h*.008,plant.y-plant.height*.3,plant.x,plant.y);ctx.fill();ctx.stroke();}
+   if(foregroundReady){const fw=h*.48,fh=fw*foreground.naturalHeight/foreground.naturalWidth;for(const anchor of [.035,.965]){const x=anchor*w-(progress-.5)*w*.22;ctx.drawImage(foreground,x-fw/2,h-fh*.78,fw,fh);}}
+   // Irregular, tapered blades. No thick central stroke or uniform fence spacing.
+   ctx.save();
+   for(const [index,plant] of foregroundFronds(progress,w,h,reducedMotion?0:elapsed).entries()){
+    for(let j=0;j<5;j++){
+     const factor=.57+((j*3+index)%7)*.07;
+     const blade=frondBlade(plant.height*factor,plant.width*(.75+j*.09),plant.lean+(j-2)*h*.023,plant.sway*(.6+j*.17));
+     const baseX=plant.x+(j-2)*h*.004;
+     const shade=ctx.createLinearGradient(baseX,plant.y,baseX+blade.tip.x,plant.y+blade.tip.y);
+     shade.addColorStop(0,`hsla(${plant.hue},40%,18%,.94)`);shade.addColorStop(.5,`hsla(${plant.hue},40%,29%,.86)`);shade.addColorStop(1,`hsla(${plant.hue+8},38%,43%,.72)`);
+     ctx.fillStyle=shade;ctx.beginPath();ctx.moveTo(baseX,plant.y);
+     ctx.bezierCurveTo(baseX+blade.leftControl1.x,plant.y+blade.leftControl1.y,baseX+blade.leftControl2.x,plant.y+blade.leftControl2.y,baseX+blade.tip.x,plant.y+blade.tip.y);
+     ctx.bezierCurveTo(baseX+blade.rightControl1.x,plant.y+blade.rightControl1.y,baseX+blade.rightControl2.x,plant.y+blade.rightControl2.y,baseX,plant.y);ctx.fill();
+    }
    }ctx.restore();
    if(bubbles&&!reducedMotion){ctx.strokeStyle='rgba(220,250,255,.24)';ctx.lineWidth=Math.max(1,h/1080);for(let i=0;i<22;i++){const x=layout.x+((i*.6180339)%1)*layout.width+Math.sin(elapsed*.6+i)*h*.006;const y=h-((elapsed*(.015+i%4*.004)+i*.137)%1)*h;ctx.beginPath();ctx.arc(x,y,h*(.0015+(i%4)*.0007),0,Math.PI*2);ctx.stroke();}}
    frame=requestAnimationFrame(render);
