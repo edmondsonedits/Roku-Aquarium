@@ -43,3 +43,28 @@ test('body transport cancellation retains AbortError identity',async()=>{
  const response=new Response(new ReadableStream({start(controller){controller.error(aborted);}}));
  await assert.rejects(readJsonResponse(response),error=>error===aborted);
 });
+
+test('dropped connection after a mutation warns it may be saved without retrying',async()=>{
+ let requests=0;
+ const server=createServer((req,res)=>{requests++;req.resume();req.on('end',()=>res.destroy());});
+ await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
+ try{
+  await assert.rejects(api(`http://127.0.0.1:${(server.address() as {port:number}).port}`,{title:'New room'}),/may already have been saved.*check.*before.*again/i);
+  assert.equal(requests,1);
+ }finally{server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}
+});
+test('interrupted mutation response body also warns about the uncertain save',async()=>{
+ let requests=0;
+ const server=createServer((req,res)=>{
+  requests++;req.resume();req.on('end',()=>{
+   res.writeHead(200,{'content-type':'application/json','content-length':'100'});
+   res.write('{"saved":');
+   setTimeout(()=>res.destroy(),30);
+  });
+ });
+ await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
+ try{
+  await assert.rejects(api(`http://127.0.0.1:${(server.address() as {port:number}).port}`,{title:'New room'}),/may already have been saved.*check.*before.*again/i);
+  assert.equal(requests,1);
+ }finally{server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}
+});

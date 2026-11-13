@@ -5,8 +5,16 @@ import type { AquariumState, AquariumSummary } from '../../lib/aquarium-contract
 export async function api<T>(url:string, body?:unknown):Promise<T> {
  if(body===undefined)return fetchJson<T>(url,{cache:'no-store'});
  // Do not introduce an ambiguous timeout for non-idempotent mutations such as room creation.
- const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
- return readJsonResponse<T>(response,true);
+ const payload=JSON.stringify(body);
+ try{
+  const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:payload});
+  return await readJsonResponse<T>(response,true);
+ }catch(error){
+  if(error instanceof TypeError || (error instanceof Error && error.name==='AbortError')){
+   throw new Error('The connection was interrupted. The change may already have been saved. Check the aquarium before trying again.',{cause:error});
+  }
+  throw error;
+ }
 }
 export function useAquarium(code:string) { const [state,setState]=useState<AquariumState|null>(null); const [summary,setSummary]=useState<AquariumSummary|null>(null); const [connection,setConnection]=useState('Connecting'); const [error,setError]=useState(''); const refresh=useRef<()=>void>(()=>{});
 useEffect(()=>{ if(!code)return;let disposed=false,busy=false,timer:ReturnType<typeof setTimeout>,failures=0;const controller=new AbortController();const poll=async()=>{if(disposed||busy||document.hidden)return;busy=true;clearTimeout(timer);try{const data=await fetchJson<AquariumState>(`/api/aquariums/${code}`,{cache:'no-store',signal:controller.signal});if(disposed)return;setSummary(data);if(data.role)setState(data);setConnection('Live');setError('');failures=0;}catch(cause){if(disposed)return;failures++;setConnection('Reconnecting');setError(cause instanceof Error?cause.message:'Connection interrupted');}finally{busy=false;if(!disposed)timer=setTimeout(poll,Math.min(30000,3000*2**failures));}};const visible=()=>{if(!document.hidden)void poll();};refresh.current=()=>void poll();void poll();document.addEventListener('visibilitychange',visible);window.addEventListener('online',visible);return()=>{disposed=true;controller.abort();clearTimeout(timer);document.removeEventListener('visibilitychange',visible);window.removeEventListener('online',visible);};},[code]);
