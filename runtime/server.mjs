@@ -19,7 +19,25 @@ import { hostname as hostname2, homedir } from "node:os";
 import { resolve as resolve3, extname, sep as sep2, dirname as dirname2 } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 import { Readable as Readable2 } from "node:stream";
-import { pipeline as pipeline2 } from "node:stream/promises";
+
+// standalone/response-stream.ts
+import { pipeline } from "node:stream/promises";
+async function streamResponse(source, response2) {
+  let clientDisconnected = false;
+  const onClose = () => {
+    clientDisconnected = !response2.writableFinished && !source.destroyed;
+  };
+  response2.once("close", onClose);
+  try {
+    await pipeline(source, response2);
+  } catch (error) {
+    const code = error?.code;
+    if (clientDisconnected && (code === "ERR_STREAM_PREMATURE_CLOSE" || code === "ECONNRESET")) return;
+    throw error;
+  } finally {
+    response2.off("close", onClose);
+  }
+}
 
 // standalone/storage.ts
 import { DatabaseSync } from "node:sqlite";
@@ -150,7 +168,7 @@ import { mkdir as mkdir2, readFile as readFile2, writeFile as writeFile2, rename
 import { createReadStream, createWriteStream } from "node:fs";
 import { resolve as resolve2 } from "node:path";
 import { Readable, Transform } from "node:stream";
-import { pipeline } from "node:stream/promises";
+import { pipeline as pipeline2 } from "node:stream/promises";
 
 // server/fish-png.ts
 function fishPngCrc(bytes) {
@@ -558,7 +576,7 @@ async function backdropRequest(req, code, env, dataDir) {
   const id = crypto.randomUUID(), file = id + ".video", temp = resolve2(dir, id + ".upload"), target = resolve2(dir, file), metaTemp = resolve2(dir, id + ".json");
   let size = 0, committed = false;
   try {
-    await pipeline(Readable.fromWeb(req.body), new Transform({ transform(chunk, _encoding, callback) {
+    await pipeline2(Readable.fromWeb(req.body), new Transform({ transform(chunk, _encoding, callback) {
       size += chunk.length;
       callback(size > max ? new Error("VIDEO_TOO_LARGE") : null, chunk);
     } }), createWriteStream(temp, { flags: "wx", mode: 384 }));
@@ -626,7 +644,7 @@ async function createAquariumServer(options = {}) {
           response2 = video ? await backdropRequest(request, video[1], env, dataDir) : await aquariumRequest(request, env);
         }
         outgoing.writeHead(response2.status, Object.fromEntries(response2.headers.entries()));
-        if (response2.body) await pipeline2(Readable2.fromWeb(response2.body), outgoing);
+        if (response2.body) await streamResponse(Readable2.fromWeb(response2.body), outgoing);
         else outgoing.end();
         return;
       }
@@ -658,10 +676,15 @@ async function createAquariumServer(options = {}) {
       }
       outgoing.writeHead(200, { "content-type": mime[extname(path)] || "application/octet-stream", "content-length": info.size, "x-content-type-options": "nosniff", "referrer-policy": "same-origin", "cache-control": "no-cache" });
       if (incoming.method === "HEAD") outgoing.end();
-      else await pipeline2(createReadStream2(path), outgoing);
+      else await streamResponse(createReadStream2(path), outgoing);
     } catch (e) {
       console.error("Local aquarium request failed", e);
-      if (!outgoing.headersSent) outgoing.writeHead(500, { "content-type": "application/json" });
+      if (outgoing.destroyed || outgoing.writableEnded) return;
+      if (outgoing.headersSent) {
+        outgoing.destroy();
+        return;
+      }
+      outgoing.writeHead(500, { "content-type": "application/json" });
       outgoing.end(JSON.stringify({ error: "The request could not be completed." }));
     }
   });
