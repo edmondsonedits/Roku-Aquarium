@@ -14,3 +14,9 @@ test('caller cancellation stops a pending request',async()=>{
  const controller=new AbortController();controller.abort();
  await assert.rejects(fetchJson('http://127.0.0.1:1',{signal:controller.signal}),/abort/i);
 });
+test('read timeout covers a response body that stalls after headers arrive',async()=>{
+ const server=createServer((_req,res)=>{res.writeHead(200,{'content-type':'application/json'});res.write('{"ready":');});
+ await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
+ try{await assert.rejects(fetchJson(`http://127.0.0.1:${(server.address() as {port:number}).port}`,{},50),/timed out/i);}
+ finally{server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}
+});
