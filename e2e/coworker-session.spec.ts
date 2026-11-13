@@ -4,8 +4,10 @@ async function joinAndDraw(page: Page, code: string, name: string) {
   await page.goto(`/join?code=${code}`);
   await page.getByLabel('Your display name').fill(name);
   await page.getByRole('button', {name: 'Let’s draw a fish'}).click();
+  await page.locator('.draw-session > summary').click();
   await expect(page.getByLabel('Fish name')).toBeVisible();
   await page.getByLabel('Fish name').fill(`${name}'s fish`);
+  await page.locator('.draw-session > summary').click();
   const intro = page.getByRole('button', {name: 'Got it', exact: true});
   if (await intro.isVisible()) await intro.click();
   await expect(page.getByRole('button', {name: 'Preview swim', exact: true})).toBeEnabled();
@@ -66,4 +68,33 @@ test('host and two independent coworkers can save, retry and restore fish', asyn
   } finally {
     await Promise.all(phones.map(context => context.close()));
   }
+});
+
+test('phone drawing gives canvas priority, expandable tools and recoverable draft', async ({page}) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/');
+  await page.getByLabel('Aquarium name').fill('Canvas workspace');
+  await page.getByRole('button',{name:'Create aquarium'}).click();
+  await expect(page).toHaveURL(/\/host\/[A-Z2-9]{6}/);
+  const code=new URL(page.url()).pathname.split('/').pop()!;
+  await joinAndDraw(page,code,'Painter');
+  await expect(page.getByLabel('Fish name')).toBeHidden();
+  const stage=page.locator('[aria-label="Fish canvas"]');
+  const normal=await stage.boundingBox();
+  expect(normal!.height).toBeGreaterThan(844*.55);
+  await page.getByRole('button',{name:'Choose ink colour',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Choose ink colour'})).toBeVisible();
+  await page.getByRole('button',{name:'Brush',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Choose ink colour'})).toBeHidden();
+  await page.getByRole('region',{name:'Tool settings'}).getByRole('button',{name:'Done ✓'}).click();
+  await page.getByRole('button',{name:'Hide tools',exact:true}).click();
+  expect((await stage.boundingBox())!.height).toBeGreaterThan(normal!.height+80);
+  await expect(page.getByRole('button',{name:'Send fish',exact:true})).toBeEnabled();
+  await page.screenshot({path:'test-results/phone-focus.png'});
+  await page.getByRole('button',{name:'Show tools',exact:true}).click();
+  await page.reload();
+  await expect(page.getByRole('button',{name:'Send fish',exact:true})).toBeEnabled();
+  await page.setViewportSize({width:844,height:390});
+  await expect(page.getByRole('button',{name:'Hide tools',exact:true})).toBeInViewport();
+  await expect(page.getByRole('button',{name:'Send fish',exact:true})).toBeInViewport();
 });

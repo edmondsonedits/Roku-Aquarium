@@ -29,3 +29,23 @@
 .host-setup summary{cursor:pointer;padding:13px 0;font-weight:600;min-height:44px}
 .host-setup ol{padding-left:22px;margin:0 0 12px}.host-setup li{margin:8px 0;line-height:1.6}
 .host-setup p{margin:0 0 16px;line-height:1.6}.host-setup li,.host-setup p{font-size:14px}
+
+/* Drawing is a full-height workspace, not a page of setup cards. */
+.draw-workspace{position:fixed;inset:0;max-width:none;margin:0;padding:0;display:flex;flex-direction:column;height:100dvh;overflow:hidden;background:#193e3b}
+.draw-workspace .draw-header{flex:none;min-height:44px;height:44px;padding:0 10px;background:var(--paper);border:0}
+.draw-workspace .draw-header .brand{min-width:0;max-width:75%;font-size:12px}
+.draw-workspace .draw-header .brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.draw-session{flex:none;position:relative;background:#f8f6e9;color:#153f3c;z-index:12;border-bottom:1px solid #58796a}
+.draw-session>summary{display:flex;align-items:center;min-height:36px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:600;list-style:none}
+.draw-session>summary::after{content:'＋';margin-left:auto;font-size:18px}
+.draw-session[open]>summary::after{content:'−'}
+.draw-session[open]{max-height:45dvh;overflow:auto;overscroll-behavior:contain}
+.draw-session .draw-info,.draw-session .draw-notice,.draw-session .recovery-details{margin:0;padding:8px 12px}
+.draw-session .draw-info{flex-wrap:wrap}
+.draw-session .draw-info input{font-size:16px;min-height:44px}
+.draw-workspace .success-banner{flex:none;margin:0;border-radius:0;padding:8px 12px}
+.draw-workspace .error-banner{flex:none;margin:0}
+.draw-workspace section[data-fish-editor]{flex:1;min-height:0;height:auto!important;border:0;border-radius:0;box-shadow:none}
+@media(orientation:landscape) and (max-height:500px){.draw-workspace .draw-header{height:36px;min-height:36px}.draw-session>summary{min-height:32px}}
+
+.draw-workspace .draw-state-notice{flex:none;margin:0;padding:6px 10px;background:#fff4d6;color:#453b20;font-size:12px;line-height:1.3}

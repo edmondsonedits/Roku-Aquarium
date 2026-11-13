@@ -66,3 +66,44 @@
 .pickerHeading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.pickerHeading strong{font-family:"Fredoka Variable","Fredoka",sans-serif;font-size:1.15rem}.pickerHeading p,.pickerNote{font-size:.7rem;line-height:1.4;margin:4px 0 8px;color:#4a5967}.pickerHeading button,.blankChoice{min-height:44px;border:1px solid #087f90;border-radius:9px;background:#e0f4ee;color:#111a39;padding:8px 12px;font-weight:700}
 .bodyPicker h3{font-size:.78rem;margin:10px 0 6px}.bodyChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.bodyChoices button{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;border:2px solid #c5d6d0;border-radius:12px;background:#f0f1e4;padding:6px;color:#111a39;text-align:center}.bodyChoices button[aria-pressed=true]{border-color:#087f90;background:#cff1e9;box-shadow:inset 0 0 0 1px #087f90}.bodyChoices svg{width:100%;height:82px;overflow:visible}.bodyChoices path{fill:#ffe3a1;stroke:#27485a;stroke-width:12;stroke-linejoin:round}.bodyChoices circle{fill:#27485a}.bodyChoices strong{font-size:.67rem;line-height:1.25}.bodyChoices span{font-size:.58rem;line-height:1.3;color:#455c63}.blankChoice{width:100%;margin-top:12px}.blankChoice[aria-pressed=true]{background:#cff1e9;border-width:2px}.pickerNote{margin:8px 0 0}
 @container fish-editor (min-width:520px){.bodyChoices{grid-template-columns:repeat(6,minmax(0,1fr))}.bodyChoices svg{height:100px}.bodyChoices strong{font-size:.74rem}.bodyChoices span{font-size:.64rem}.bodyPicker{padding:16px}}
+
+/* Canvas-first workspace: one compact dock; secondary choices overlay on demand. */
+.editor[ data-untimed=true ] .header{display:none}
+.editor .header{margin:0;flex:none}
+.editor .modeRow{padding:3px 6px;gap:4px}
+.editor .modeRow[hidden],.editor .dock[hidden],.editor .settings[hidden]{display:none}
+.editor .modeTabs button,.editor .templateButton,.editor .previewButton{min-height:44px;height:44px;padding:4px 7px}
+.editor .workArea{display:flex;flex-direction:column;min-height:0;position:relative}
+.editor .stage{flex:1;min-height:0;width:100%}
+.editor .dock{flex:none;height:auto;max-height:40%;padding:4px;overflow:visible;border-top:1px solid #b5c8c7}
+.editor .controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;position:static}
+.editor .toolRow{gap:3px;padding:0;scrollbar-width:none;min-width:0}
+.editor .toolRow button{flex:0 0 48px;min-height:44px;height:44px;padding:2px;font-size:11px}
+.editor .toolRow button span{font-size:10px}
+.editor .toolRow svg{width:18px;height:18px}
+.editor .quickHistory{position:static;display:flex;align-items:center;gap:2px;padding:0;background:transparent}
+.editor .quickHistory button{width:44px;height:44px;min-height:44px;gap:0;padding:2px}
+.editor .quickHistory span{font-size:9px;letter-spacing:0}
+.editor .quickHistory i{width:19px;height:19px;border:1px solid #607d78;border-radius:50%}
+.editor .settings{grid-column:1/-1;max-height:24dvh;overflow:auto}
+.editor .toolPopover{bottom:60px;max-height:calc(100% - 68px);width:min(260px,75%);padding:10px}
+.editor .colourPanel{position:absolute;bottom:60px;right:6px;z-index:9;width:min(320px,calc(100% - 12px));padding:12px;border:1px solid #58796a;border-radius:12px;background:#fff9e8;box-shadow:0 4px 22px #06152955;max-height:calc(100% - 68px);overflow:auto}
+.editor .colourHeading{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px}
+.editor .colourHeading button{min-height:44px;padding:6px 12px;border:1px solid #58796a;border-radius:8px;background:#d8eeea;color:#153f3c}
+.editor .palette{display:grid;grid-template-columns:repeat(5,minmax(44px,1fr));gap:8px;margin:6px 0 0;padding:4px;overflow:visible}
+.editor .palette>button,.editor .customColor{width:44px;height:44px;min-width:44px;justify-self:center}
+.editor .footer{margin:0;letter-spacing:normal;min-height:52px;padding:4px 6px max(4px,env(safe-area-inset-bottom));gap:6px;border-top:1px solid #355072}
+.editor .footer span{letter-spacing:normal;font-size:10px}
+.editor .lockHint{display:block}
+.editor .send{min-height:44px;min-width:100px;padding:6px 8px;font-size:13px!important;border-radius:9px;box-shadow:none}
+.editor .focusButton{min-height:44px;padding:4px 8px;border:1px solid #8cb7ae;border-radius:8px;background:transparent;color:var(--paper);font-size:11px}
+.editor .status{font-size:10px;max-height:40px;overflow:auto}
+.editor .status strong{font-size:11px}
+.editor .resetView{min-height:44px;font-size:12px}
+.editor .introHelp{width:min(280px,calc(100% - 24px));padding:12px}
+.editor .introHelp span{font-size:12px}
+.editor .headCue{font-size:10px;bottom:6px}
+@media(orientation:landscape) and (max-height:500px){.editor .modeRow{padding:0 6px}.editor .footer{min-height:48px;padding-top:2px;padding-bottom:max(2px,env(safe-area-inset-bottom))}.editor .dock{max-height:50%}}
+
+.editor .helpButton{position:absolute;top:6px;left:6px;min-height:44px;padding:6px 12px;border:1px solid #58796a;border-radius:8px;background:#fff9e8;color:#153f3c;font-size:12px;z-index:2}
+.editor .introHelp{max-height:calc(100% - 12px);overflow:auto}
