@@ -102,6 +102,9 @@ export function separateFish(poses: FishPose[]): FishPose[] {
       if (i === j) continue;
       const other = poses[j]!;
       const dx = pose.x - other.x, dy = (pose.y - other.y) * .62;
+      // Axis rejection avoids expensive distances for fish outside the interaction radius.
+      // Keep the original distance calculation for neighbours to preserve exact motion.
+      if (Math.abs(dx) >= .135 || Math.abs(dy) >= .135) continue;
       const distance = Math.hypot(dx, dy);
       if (distance >= .135) continue;
       const strength = smooth(1 - distance / .135) * .025;
